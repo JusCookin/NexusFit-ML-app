@@ -52,7 +52,7 @@ NEXUS-GYM/
 
 1. **Clone this repo**
 
-git clone https://github.com/yourusername/nexus-gym-ml-app.git
+git clone https://github.com/JusCookin/NexusFit-ML-app.git
 cd nexus-gym-ml-app
 
 2. Install dependencies
