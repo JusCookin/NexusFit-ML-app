@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS Gym AI - Training Protocol Results</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Orbitron', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated background */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            background: linear-gradient(45deg, #00f5ff, #ff00ff);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+            opacity: 0.1;
+        }
+
+        .particle:nth-child(1) { width: 4px; height: 4px; left: 10%; animation-delay: 0s; }
+        .particle:nth-child(2) { width: 6px; height: 6px; left: 20%; animation-delay: 1s; }
+        .particle:nth-child(3) { width: 3px; height: 3px; left: 30%; animation-delay: 2s; }
+        .particle:nth-child(4) { width: 5px; height: 5px; left: 40%; animation-delay: 3s; }
+        .particle:nth-child(5) { width: 4px; height: 4px; left: 50%; animation-delay: 4s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(100vh) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(180deg); }
+        }
+
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 245, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 245, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            z-index: 1;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: slideDown 1s ease-out;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #00f5ff, #ff00ff, #00ff41);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 3s ease-in-out infinite;
+            margin-bottom: 10px;
+        }
+
+        .status {
+            font-size: 1.1rem;
+            color: #00ff41;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* BMI Card */
+        .bmi-card {
+            background: linear-gradient(135deg, rgba(0, 255, 65, 0.1), rgba(0, 255, 65, 0.05));
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(0, 255, 65, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            animation: slideUp 1s ease-out 0.2s both;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bmi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 65, 0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        .bmi-value {
+            font-size: 3rem;
+            font-weight: 900;
+            color: #00ff41;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+        }
+
+        .bmi-level {
+            font-size: 1.3rem;
+            color: #00f5ff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Results grid */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 245, 255, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            animation: slideUp 1s ease-out both;
+        }
+
+        .result-card:nth-child(1) { animation-delay: 0.3s; }
+        .result-card:nth-child(2) { animation-delay: 0.4s; }
+        .result-card:nth-child(3) { animation-delay: 0.5s; }
+        .result-card:nth-child(4) { animation-delay: 0.6s; }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 245, 255, 0.2);
+            border-color: #00f5ff;
+        }
+
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 245, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .result-card:hover::before {
+            left: 100%;
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #00f5ff;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .card-content {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Message card for errors */
+        .message-card {
+            background: linear-gradient(135deg, rgba(255, 0, 255, 0.1), rgba(255, 0, 255, 0.05));
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 0, 255, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            animation: slideUp 1s ease-out both;
+            margin-bottom: 30px;
+        }
+
+        .message-text {
+            font-size: 1.5rem;
+            color: #ff00ff;
+            font-weight: 600;
+        }
+
+        /* Back button */
+        .back-btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #ff00ff, #00f5ff);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(255, 0, 255, 0.3);
+            animation: slideUp 1s ease-out 0.7s both;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(255, 0, 255, 0.5);
+            text-decoration: none;
+            color: #fff;
+        }
+
+        .back-container {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 2rem;
+            }
+            
+            .results-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .bmi-value {
+                font-size: 2.5rem;
+            }
+        }
+
+        /* Pulse animation for important elements */
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 245, 255, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 245, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 245, 255, 0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated background -->
+    <div class="grid-bg"></div>
+    <div class="particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1 class="logo">NEXUS GYM AI</h1>
+            <p class="status">Training Protocol Generated</p>
+        </div>
+
+        <!-- This section would be populated by your Flask template -->
+        <!-- For demonstration, I'll show both scenarios -->
+        
+        <!-- Error message scenario -->
+        {% if message %}
+        <div class="message-card pulse">
+            <div class="card-icon">⚠️</div>
+            <h2 class="message-text">{{ message }}</h2>
+        </div>
+        {% else %}
+        
+        <!-- BMI Results -->
+        <div class="bmi-card pulse">
+            <div class="bmi-value">{{ bmi }}</div>
+            <div class="bmi-level">{{ level }}</div>
+        </div>
+
+        <!-- Results Grid -->
+        <div class="results-grid">
+            <div class="result-card">
+                <span class="card-icon">🎯</span>
+                <h3 class="card-title">Fitness Type</h3>
+                <div class="card-content">{{ result['Fitness Type'] }}</div>
+            </div>
+
+            <div class="result-card">
+                <span class="card-icon">💪</span>
+                <h3 class="card-title">Exercises</h3>
+                <div class="card-content">{{ result['Exercises'] }}</div>
+            </div>
+
+            <div class="result-card">
+                <span class="card-icon">🏋️</span>
+                <h3 class="card-title">Equipment</h3>
+                <div class="card-content">{{ result['Equipment'] }}</div>
+            </div>
+
+            <div class="result-card">
+                <span class="card-icon">🥗</span>
+                <h3 class="card-title">Diet Plan</h3>
+                <div class="card-content">{{ result['Diet'] }}</div>
+            </div>
+        </div>
+
+        <!-- Additional advice in full width -->
+        <div class="result-card" style="grid-column: 1 / -1;">
+            <span class="card-icon">🧠</span>
+            <h3 class="card-title">AI Recommendations</h3>
+            <div class="card-content">{{ result['Recommendation'] }}</div>
+        </div>
+        
+        {% endif %}
+
+        <div class="back-container">
+            <a href="/" class="back-btn">← Return to Protocol Generator</a>
+        </div>
+    </div>
+
+    <script>
+        // Add entrance animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate cards on scroll
+            const cards = document.querySelectorAll('.result-card');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.transform = 'translateY(0)';
+                        entry.target.style.opacity = '1';
+                    }
+                });
+            });
+
+            cards.forEach(card => {
+                observer.observe(card);
+            });
+
+            // Add click effects to cards
+            cards.forEach(card => {
+                card.addEventListener('click', function() {
+                    this.style.transform = 'scale(1.02)';
+                    setTimeout(() => {
+                        this.style.transform = 'translateY(-5px)';
+                    }, 150);
+                });
+            });
+
+            // Typing effect for card content (optional enhancement)
+            const cardContents = document.querySelectorAll('.card-content');
+            cardContents.forEach((content, index) => {
+                const text = content.textContent;
+                content.textContent = '';
+                let i = 0;
+                
+                setTimeout(() => {
+                    const typeWriter = setInterval(() => {
+                        if (i < text.length) {
+                            content.textContent += text.charAt(i);
+                            i++;
+                        } else {
+                            clearInterval(typeWriter);
+                        }
+                    }, 20);
+                }, index * 500);
+            });
+        });
+
+        // Add hover sound effect simulation
+        document.querySelectorAll('.result-card, .back-btn').forEach(element => {
+            element.addEventListener('mouseenter', function() {
+                // Visual feedback for hover
+                this.style.filter = 'brightness(1.1)';
+            });
+            
+            element.addEventListener('mouseleave', function() {
+                this.style.filter = 'brightness(1)';
+            });
+        });
+    </script>
+</body>
+</html>
